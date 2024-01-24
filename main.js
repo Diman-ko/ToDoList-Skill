@@ -3,12 +3,6 @@ let array = [];
 
 
 (function () {
-  if (localStorage.getItem('dataObject')) {
-    console.log(JSON.parse(localStorage.getItem('array')));
-    array = JSON.parse(localStorage.getItem('dataObject'));
-    array.forEach((task) => createTodoItem(task));
-  }
-
   // создаем и возвращаем заголовок приложения
   function createAppTitle(title) {
     let appTitle = document.createElement('h2');
@@ -100,8 +94,42 @@ let array = [];
 
 //document.addEventListener('DOMContentLoaded', createDomElement)
 
+  function addToDoItem(taskName) {
+    console.log('taskName', taskName);
+    //  игнорируем создание элемента, если пользователь ничего не ввёл в поле
+    /*
+      //этот код для добавления элементов в список заменим на код обработчика событий
+      // создаём и добавляем в список новое дело с названием из поля для ввода
+      todoList.append(createTodoItem(todoItemForm.input.value).item);
+*/
+    // заменим код добавления элемента в список на код в который мы будем добавлять обработчики событий
+    let todoItem = createTodoItem(taskName);
+
+    // добавляем обработчики на кнопки
+    todoItem.doneButton.addEventListener('click', function () {
+      todoItem.item.classList.toggle('list-group-item-success');
+      console.log(task.id)//   проверяем id   работает
+      const id = task.id;
+      const task = array.find((task) => task.id === id); // ищет в массиве соответствующую задачу с id
+      task.done = !task.done; // меняет запись в массиве
+    });
+
+
+    todoItem.deleteButton.addEventListener('click', function () {
+      if (confirm('Вы уверены')) {
+        todoItem.item.remove();
+      }
+      // console.log(task.id)// проверяем. работает ловится id задачи
+      const id = task.id;
+      array = array.filter((task) => task.id !== id); // удаляет  задачу из массива
+      // console.log(array) // возвращает в консоль, что в массиве нет задачи
+    });
+
+    return todoItem;
+  }
+
   //  урок 8.4 , вынесем в отдельную функцию содержимое обработчика DOMContentLoaded
-  function createTodoApp(container, title = 'Список дел', listName) {
+  function createTodoApp(container, title = 'Список дел') {
 
     let todoAppTitle = createAppTitle(title);
     let todoItemForm = createTodoItemForm();
@@ -124,36 +152,10 @@ let array = [];
       // в данном случае мы не хотим, чтобы страница перезагружалась при отправке формы
       e.preventDefault();
 
-      //  игнорируем создание элемента, если пользователь ничего не ввёл в поле
       if (!todoItemForm.input.value) {
         return
-      }/*
-      //этот код для добавления элементов в список заменим на код обработчика событий
-      // создаём и добавляем в список новое дело с названием из поля для ввода
-      todoList.append(createTodoItem(todoItemForm.input.value).item);
-*/
-      // заменим код добавления элемента в список на код в который мы будем добавлять обработчики событий
-      let todoItem = createTodoItem(todoItemForm.input.value);
+      }
 
-      // добавляем обработчики на кнопки
-      todoItem.doneButton.addEventListener('click', function () {
-        todoItem.item.classList.toggle('list-group-item-success');
-        console.log(task.id)//   проверяем id   работает
-        const id = task.id;
-        task = array.find((task) => task.id === id); // ищет в массиве соответствующую задачу с id
-        task.done = !task.done; // меняет запись в массиве
-      });
-
-
-      todoItem.deleteButton.addEventListener('click', function () {
-        if (confirm('Вы уверены')) {
-          todoItem.item.remove();
-        }
-        // console.log(task.id)// проверяем. работает ловится id задачи
-        const id = task.id;
-        array = array.filter((task) => task.id !== id); // удаляет  задачу из массива
-        // console.log(array) // возвращает в консоль, что в массиве нет задачи
-      });
       // ============================================
 //создаем объект task для записи его в массив array, который находиться в не функции для доступа
       const timeStamp = Date.now();// настоящее время в миллисекундах ,универсальная
@@ -163,6 +165,8 @@ let array = [];
         name: todoItemForm.input.value,
         done: false,
       };
+      const todoItem = addToDoItem(task.name);
+
       array.push(task);
       console.log(array);
       localStorage.setItem('dataObject', JSON.stringify(array));
@@ -182,7 +186,15 @@ let array = [];
       todoItemForm.button.disabled = true;
     });
 
-  };
+    if (localStorage.getItem('dataObject')) {
+      console.log(JSON.parse(localStorage.getItem('dataObject')));
+      array = JSON.parse(localStorage.getItem('dataObject'));
+      array.forEach(({ name }) => {
+        const todoItem = addToDoItem(name);
+        todoList.append(todoItem.item);
+      });
+    }
+  }
 
   // в обработчик событий помещаем три вызова функции с разными id  названиями дел
   // теперь у нас есть несколько независимых списков
@@ -195,4 +207,3 @@ let array = [];
 
   window.createTodoApp = createTodoApp;
 })();
-
