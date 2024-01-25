@@ -1,8 +1,13 @@
-(function () {
-
 //  массив  задач TodoList
-  let listArray = [];
-  listName = '';
+let listArray = [];
+
+
+(function () {
+  if (localStorage.getItem('dataObject')) {
+    console.log(JSON.parse(localStorage.getItem('array')));
+    array = JSON.parse(localStorage.getItem('dataObject'));
+    array.forEach((task) => createTodoItem(task));
+  }
 
   // создаем и возвращаем заголовок приложения
   function createAppTitle(title) {
@@ -10,7 +15,6 @@
     appTitle.innerHTML = title;
     return appTitle;
   }
-
   // создаём и возвращаем форму приложения
   function createTodoItemForm() {
     let form = document.createElement('form');
@@ -33,7 +37,6 @@
         button.setAttribute('disabled', 'true');
       }
     })
-
     buttonWrapper.append(button);
     form.append(input);
     form.append(buttonWrapper);
@@ -47,14 +50,12 @@
     </div>
   </form>
     */
-
     return {
       form,
       input,
       button,
     }
   }
-
   // создаём и возвращаем список приложения
   function createTodoList() {
     let list = document.createElement('ul');
@@ -64,7 +65,7 @@
 
 //  создание функции  createTodoItem  создаст элемент для списка дел и вернёт всё необходимое
 //  урок 8.3  создаём кнопки удалить и готово
-  function createTodoItem(object) {
+  function createTodoItem(name) {
     let item = document.createElement('li');
     //  кнопки помещаем в элемент, который красиво покажет их в одной группе
     let buttonGroup = document.createElement('div');
@@ -74,7 +75,7 @@
     // устанавливаем стили для элемента списка, а также для размещения кнопок
     // в его правой части с помощью flex
     item.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-item-center');
-    item.textContent = object.name;
+    item.textContent = name;
 
     buttonGroup.classList.add('btn-group', 'btn-group-sm');
     doneButton.classList.add('btn', 'btn-success');
@@ -82,33 +83,6 @@
     deleteButton.classList.add('btn', 'btn-danger');
     deleteButton.innerHTML = 'Удалить';
 
-    // for localStorage && listArray  создаём в функции createTodoItem
-    if (object.done === true) item.classList.add('list-group-item-success');
-
-    //========================================================================
-    // добавляем обработчики на кнопки
-    doneButton.addEventListener('click', function () {
-      item.classList.toggle('list-group-item-success');
-      // console.log(object.id)//   проверяем id   работает
-      const id = object.id;
-      object = listArray.find((object) => object.id === id);
-      object.done = !object.done;
-      // console.log(listArray)
-      saveList(listArray, listName);
-    });
-
-
-    deleteButton.addEventListener('click', function () {
-      if (confirm('Вы уверены')) {
-        item.remove();
-      }
-      // console.log(object.id)// проверяем. работает ловится id задачи
-      const id = object.id;
-      listArray = listArray.filter((object) => object.id !== id);
-      // console.log(listArray)
-      saveList(listArray, listName);
-    });
-//=================================================================
     // Вкладываем кнопки в отдельный элемент, что бы они объединились в один блок
 
     buttonGroup.append(doneButton);
@@ -123,96 +97,78 @@
     };
   }
 
-  // ============== создание уникального id===========
-  // === 1st
-  let getNewId = (arr) => {
-    let max = 0;
-    for (const item of arr) {
-      if (item.id > max) max = item.id
-    }
-    return max + 1
-  }
-// === 2nd
-  const timeStamp = Date.now();
-
-  // ============== создание уникального id===========
-
 
 //document.addEventListener('DOMContentLoaded', createDomElement)
 
-  // ====================
-  const saveList = (arr, keyName) => {
-    console.log(JSON.stringify(arr));// [{"id":1706203904624,"name":"1","done":false}]  выводит в виде строки
-    localStorage.setItem(keyName, JSON.stringify(arr));
-  }
-  //=================
-
-
   //  урок 8.4 , вынесем в отдельную функцию содержимое обработчика DOMContentLoaded
-  function createTodoApp(container, title = 'Список дел', keyName, defArray=[]) {
-
+  function createTodoApp(container, title = 'Список дел', listName) {
 
     let todoAppTitle = createAppTitle(title);
     let todoItemForm = createTodoItemForm();
     let todoList = createTodoList();
 
-    listName = keyName;
-    listArray = defArray;
+
     /*    //// для наглядности примера  и демонстрации уроке в 8.3 добавим наши элементы в todoList
         let todoItems = [createTodoItem('123'), createTodoItem('321')];
         todoList.append(todoItems[0].item)
-        todoList.append(todoItems[1].item)  */
-
-    //  это запуск приложения
+        todoList.append(todoItems[1].item)
+    */
     container.append(todoAppTitle)
     container.append(todoItemForm.form);
     container.append(todoList);
-    // localStorage ====
-    let localData = localStorage.getItem(listName);
-    // console.log(localData);
-    if (localData !== null && localData !== '') listArray = JSON.parse(localData);
-      // console.log(listArray);
-      listArray.forEach((task) => {
-        let todoItem = createTodoItem(task);
-        todoList.append(todoItem.item);
-      });
 
-    /*for(const itemList of listArray) {
-      let todoItem = createTodoItem(itemList);
-      todoList.append(todoItem.item);
-    };*/
-
-    // localStorage ====
     // браузер создает событие submit  на форме по нажатию на  Enter  или на кнопку создания дела
     todoItemForm.form.addEventListener('submit', function (e) {
+
       //  эта строчка необходима, что бы предотвратить стандартное действие браузера
       // в данном случае мы не хотим, чтобы страница перезагружалась при отправке формы
       e.preventDefault();
+
       //  игнорируем создание элемента, если пользователь ничего не ввёл в поле
       if (!todoItemForm.input.value) {
         return
-      }
-      //=========== запись в массив ===========
-      let newItem = {
-        // id: getNewId(listArray),
-        id: timeStamp,
+      }/*
+      //этот код для добавления элементов в список заменим на код обработчика событий
+      // создаём и добавляем в список новое дело с названием из поля для ввода
+      todoList.append(createTodoItem(todoItemForm.input.value).item);
+*/
+      // заменим код добавления элемента в список на код в который мы будем добавлять обработчики событий
+      let todoItem = createTodoItem(todoItemForm.input.value);
+
+      // добавляем обработчики на кнопки
+      todoItem.doneButton.addEventListener('click', function () {
+        todoItem.item.classList.toggle('list-group-item-success');
+        console.log(task.id)//   проверяем id   работает
+        const id = task.id;
+        task = array.find((task) => task.id === id); // ищет в массиве соответствующую задачу с id
+        task.done = !task.done; // меняет запись в массиве
+      });
+
+
+      todoItem.deleteButton.addEventListener('click', function () {
+        if (confirm('Вы уверены')) {
+          todoItem.item.remove();
+        }
+        // console.log(task.id)// проверяем. работает ловится id задачи
+        const id = task.id;
+        array = array.filter((task) => task.id !== id); // удаляет  задачу из массива
+        // console.log(array) // возвращает в консоль, что в массиве нет задачи
+      });
+      // ============================================
+//создаем объект task для записи его в массив array, который находиться в не функции для доступа
+      const timeStamp = Date.now();// настоящее время в миллисекундах ,универсальная
+      // const timeStamp = new Date();// как другой вариант
+      let task = {
+        id: timeStamp + 'ms',
         name: todoItemForm.input.value,
         done: false,
-      }
-      listArray.push(newItem)
-      saveList(listArray, listName)  // saveLIst
-      console.log(listArray)
-
-      //================================
-      /*//этот код для добавления элементов в список заменим на код обработчика событий
-      // создаём и добавляем в список новое дело с названием из поля для ввода
-      todoList.append(createTodoItem(todoItemForm.input.value).item);*/
-      // заменим код добавления элемента в список на код в который мы будем добавлять обработчики событий
-      // let todoItem = createTodoItem(todoItemForm.input.value);// переписываем функцию
-      let todoItem = createTodoItem(newItem);// переписываем функцию, что бы принимала не имя, а объект
+      };
+      array.push(task);
+      console.log(array);
+      localStorage.setItem('dataObject', JSON.stringify(array));
 
 
-      // ============================================
+// ================================================================
 
       //   создаём и добавляем в список новое дело с названием из поля для ввода
       todoList.append(todoItem.item);
@@ -228,7 +184,15 @@
 
   };
 
+  // в обработчик событий помещаем три вызова функции с разными id  названиями дел
+  // теперь у нас есть несколько независимых списков
+  /*  function createDomElement() {
+  createTodoApp(document.getElementById('my-todos'), 'Мои дела')
+  createTodoApp(document.getElementById('mom-todos'), 'Дела Мамы')
+  createTodoApp(document.getElementById('dad-todos'), 'Дела Папы')
+    };
+    document.addEventListener('DOMContentLoaded', createDomElement)*/
+
   window.createTodoApp = createTodoApp;
 })();
-
 

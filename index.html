@@ -11,7 +11,25 @@
   <script defer src="main.js"></script>
   <script>
 document.addEventListener("DOMContentLoaded", function() {
-createTodoApp(document.getElementById('todo-app'), 'Мои дела', 'my');
+  let defArray = [
+    {
+      id: 1,
+      name:'Купить хлеб',
+      done: true,
+    },
+    {
+      id: 2,
+      name:'Купить молоко',
+      done: true,
+    },
+    {
+      id: 3,
+      name:'Возьми с полки пирожок',
+      done: true,
+    }
+  ]
+
+createTodoApp(document.getElementById('todo-app'), 'Мои дела', 'my', defArray);
 });
   </script>
 </head>
